@@ -1,0 +1,11 @@
+generator:
+  directory: "../data/clusterdata-2011-2/task_events"
+  kafka-address: "task-events"
+  log-sending: "no"
+
+logging:
+  level:
+    org.springframework: ERROR
+    fr.ensimag: TRACE
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
