@@ -1,4 +1,4 @@
-package fr.ensimag.clusterdataconsumer.consumer
+package fr.ensimag.clusterdataconsumer
 
 data class TaskEvent(
     val time: Long, //1,time,INTEGER,YES
