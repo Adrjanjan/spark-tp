@@ -37,12 +37,13 @@ class Generator(
             logger.error("Started generating tasks for path $path")
             ungzip(path).split("\n")
                 .stream()
+                .filter { it != "" }
                 .map { it.split(",") }
                 .filter { it[0] != "0" }
                 .map { TaskEvent(it) }
                 .forEach {
                     sendMessage(it)
-                    Thread.sleep(10)
+                    Thread.sleep(1)
                 }
         }
     }

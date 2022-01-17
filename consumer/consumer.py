@@ -73,8 +73,7 @@ events_by_type_1_min_window \
   .format("console") \
   .outputMode("update") \
   .queryName("States' count over 1 min window") \
-  .start() \
-  .awaitTermination()
+  .start()
 
 
 # 2 Number of events by event type and machine in 1 min window every 30 seconds
@@ -90,7 +89,7 @@ events_by_machine_type_1_min_window = task_events_df \
 
 events_by_machine_type_1_min_window.writeStream \
   .format("console") \
-  .outputMode("complete") \
+  .outputMode("update") \
   .queryName("States' count per machine over 1 min window") \
   .start() \
   .awaitTermination()
