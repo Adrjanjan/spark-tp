@@ -19,9 +19,7 @@ class Generator(
     private val kafkaTemplate: KafkaTemplate<String, TaskEvent>,
     private val generatorConfiguration: GeneratorConfiguration
 ) {
-
     private val logger = LoggerFactory.getLogger(javaClass)
-
 
     fun ungzip(content: Path): String = GZIPInputStream(
         content.toFile().readBytes().inputStream()
@@ -31,7 +29,6 @@ class Generator(
     fun generate() {
 
         val filePaths = Files.list(Path(generatorConfiguration.directory))
-//            .peek { logger.error(it.name) }
             .filter { !it.isDirectory() }
             .sorted()
             .collect(Collectors.toList())
@@ -40,11 +37,12 @@ class Generator(
             logger.error("Started generating tasks for path $path")
             ungzip(path).split("\n")
                 .stream()
-                .map { line -> TaskEvent(line) }
-                .filter { task -> task.time != 0L }
+                .map { it.split(",") }
+                .filter { it[0] != "0" }
+                .map { TaskEvent(it) }
                 .forEach {
                     sendMessage(it)
-                    Thread.sleep(100)
+                    Thread.sleep(10)
                 }
         }
     }
@@ -52,14 +50,11 @@ class Generator(
     fun sendMessage(message: TaskEvent) {
         val future = kafkaTemplate.send(generatorConfiguration.kafkaAddress, message)
         if (generatorConfiguration.logSending) {
-            future.addCallback(
-                { result ->
-                    logger.trace("Sent message=[$message] with offset=[$result!!.recordMetadata.offset()]")
-                },
-                { ex ->
-                    logger.error("Unable to send message=[$message] due to : $ex.message")
-                }
-            )
+            future.addCallback({ result ->
+                logger.trace("Sent message=[$message] with offset=[$result!!.recordMetadata.offset()]")
+            }, { ex ->
+                logger.error("Unable to send message=[$message] due to : $ex.message")
+            })
         }
     }
 }

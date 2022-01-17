@@ -9,7 +9,10 @@ Simple application build with Spring & Kotlin to read data from _task-event_ fil
 
 ## [Stream consumer](consumer)
 
-Simple application build with Spring & Kotlin to perform analytics on _task-event_ data using Apache Spark Streaming. 
+Simple script in Python used to perform analytics on _task-event_ data using Apache Spark Streaming. 
+To run it use the following command: 
+
+> $SPARK_HOME/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0 consumer.py
 
 
 ## [Kafka](kafka)

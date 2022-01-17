@@ -1,6 +1,6 @@
 package fr.ensimag.clusterdataproducer.generator
 
-class TaskEvent(line: String) {
+class TaskEvent(values: List<String>) {
     val time: Long //1,time,INTEGER,YES
     val missingInfo: Int? //2,missing info,INTEGER,NO
     val jobId: Long //3,job ID,INTEGER,YES
@@ -16,8 +16,9 @@ class TaskEvent(line: String) {
     val differentMachinesRestriction: Boolean?//13,different machines restriction,BOOLEAN,NO
 
     init {
-        val values = line.split(",")
-        time = values[0].toLong()
+        val baseTime = 1304269200 - 600
+//        val baseTime = 1640390400 - 600
+        time = baseTime + values[0].toLong().floorDiv(1000000)
         missingInfo = values[1].toIntOrNull()
         jobId = values[2].toLong()
         taskIndex = values[3].toLong()
