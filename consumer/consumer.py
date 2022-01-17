@@ -18,10 +18,11 @@ task_events_raw = spark \
   .option("kafka.bootstrap.servers", "localhost:9092") \
   .option("subscribe", "task-events") \
   .option("startingOffsets", "earliest") \
+  .option("failOnDataLoss", "false") \
   .load()
 
 # Print Kafka schema 
-task_events_raw.printSchema()
+# task_events_raw.printSchema()
 
 # schema of JSON
 schema = StructType([
@@ -49,41 +50,47 @@ task_events_df = task_events_df \
   .withColumn("time", to_timestamp(task_events_df.time))
 
 task_events_df.printSchema()
-task_events_df.writeStream \
-  .format("console") \
-  .outputMode("append") \
-  .queryName("Raw") \
-  .start()
+
+# task_events_df.writeStream \
+#   .format("console") \
+#   .outputMode("update") \
+#   .queryName("Raw") \
+#   .start()
 
 # Start analysis
 # 1 Number of events by event type in 1 min window every 30 seconds
 
-events_by_type_10_min_window = task_events_df \
+events_by_type_1_min_window = task_events_df \
   .withWatermark("time", "3 minutes") \
-  .groupBy(
-    "eventType",
-    window("time", "1 minutes", "30 seconds")
-).count()
+  .groupBy("eventType", window("time", "1 minutes", "30 seconds")) \
+  .count() \
+  .withColumn("window-start", column("window.start").cast(StringType()).alias("window-start")) \
+  .withColumn("window-end", column("window.end").cast(StringType()).alias("window-end")) \
+  .drop("window")
 
-events_by_type_10_min_window.writeStream \
+events_by_type_1_min_window \
+  .writeStream \
   .format("console") \
-  .outputMode("append") \
+  .outputMode("update") \
   .queryName("States' count over 1 min window") \
-  .start()
+  .start() \
+  .awaitTermination()
+
 
 # 2 Number of events by event type and machine in 1 min window every 30 seconds
-events_by_machine_type_10_min_window = task_events_df \
+events_by_machine_type_1_min_window = task_events_df \
   .withWatermark("time", "3 minutes") \
   .filter(task_events_df.machineId.isNotNull()) \
-  .groupBy(
-    "eventType", 
-    "machineId",
-    window("time", "1 minutes", "30 seconds")
-).count()
+  .groupBy("eventType", "machineId", window("time", "1 minutes", "30 seconds")) \
+  .count() \
+  .withColumn("window-start", column("window.start").cast(StringType()).alias("window-start")) \
+  .withColumn("window-end", column("window.end").cast(StringType()).alias("window-end")) \
+  .drop("window")
+  
 
-events_by_machine_type_10_min_window.writeStream \
+events_by_machine_type_1_min_window.writeStream \
   .format("console") \
-  .outputMode("append") \
+  .outputMode("complete") \
   .queryName("States' count per machine over 1 min window") \
   .start() \
   .awaitTermination()
